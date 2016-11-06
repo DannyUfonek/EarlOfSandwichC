@@ -12,8 +12,8 @@ int main(int argc,char**argv)
 
 	SDL_Window * okno;
 	okno=SDL_CreateWindow("Earl of Sandwich", //nazev
-				SDL_WINDOWPOS_UNDEFINED,           // initial x position
-                SDL_WINDOWPOS_UNDEFINED,  //pozice
+				SDL_WINDOWPOS_UNDEFINED,
+                SDL_WINDOWPOS_UNDEFINED,  //pozice (posouvatelne okno)
 				SCREEN_WIDTH,SCREEN_HEIGHT, //rozmer
 				0);	//flags
 
@@ -51,16 +51,23 @@ int main(int argc,char**argv)
 
 			if(udalost.type==SDL_KEYDOWN)
 			{
-			    // pohyb plosinky
-				if(udalost.key.keysym.sym==SDLK_LEFT && obdelnik.x > 0)
+			    if(udalost.key.keysym.sym==SDLK_ESCAPE)
                 {
+                    // ukonci hru
+                    state=0;
+                }
+                // ziskej stav klaves na klavesnici
+                const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
+			    // pohyb plosinky doleva a doprava
+                if( currentKeyStates[ SDL_SCANCODE_LEFT ] && obdelnik.x > 0)
+				{
                     obdelnik.x = obdelnik.x -rychlost;
-                }
-                if(udalost.key.keysym.sym==SDLK_RIGHT && obdelnik.x < SCREEN_WIDTH - obdelnik.w)
-                {
-                    obdelnik.x = obdelnik.x +rychlost;
-                }
-
+				}
+                if( currentKeyStates[ SDL_SCANCODE_RIGHT ] && obdelnik.x < SCREEN_WIDTH - obdelnik.w)
+				{
+					obdelnik.x = obdelnik.x +rychlost;
+				}
+                // prekresli obdelnik
                 SDL_SetRenderDrawColor(render,255,255,255,255);
                 SDL_RenderClear( render);
 
