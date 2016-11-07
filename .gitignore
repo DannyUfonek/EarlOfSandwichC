@@ -4,3 +4,5 @@ bin/Debug/EarlOfSandwichC.exe
 EarlOfSandwichC.depend
 EarlOfSandwichC.cbp
 EarlOfSandwichC.layout
+*.exe
+*.o
