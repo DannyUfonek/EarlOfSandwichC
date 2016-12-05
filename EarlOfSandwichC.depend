@@ -1,10 +1,16 @@
 # depslib dependency file v1.0
-1478524620 source:c:\users\hypernek\documents\github\earlofsandwichc\main.cpp
-	<iostream>
+1480945428 source:c:\users\hypernek\documents\github\earlofsandwichc\main.cpp
 	<SDL.h>
 	<SDL_image.h>
 	<stdio.h>
 	<string>
+	<SDL.h>
+	<SDL_ttf.h>
+	<SDL_image.h>
+	<stdio.h>
+	<string>
+	"sprite.h"
+	"constants.h"
 
 1476935894 c:\users\hypernek\codeblocks projekty\sdl2-32bit\include\sdl2\sdl.h
 	"SDL_main.h"
@@ -651,12 +657,34 @@
 1478452113 source:i:\earlofsandwichc\constants.cpp
 	<SDL.h>
 
-1478517646 source:c:\users\hypernek\documents\github\earlofsandwichc\constants.cpp
-	<SDL.h>
+1480944493 source:c:\users\hypernek\documents\github\earlofsandwichc\constants.cpp
 
 1451800373 c:\users\hypernek\codeblocks projekty\sdl2-32bit\include\sdl2\sdl_image.h
 	"SDL.h"
 	"SDL_version.h"
 	"begin_code.h"
 	"close_code.h"
+
+1454362933 c:\users\hypernek\codeblocks projekty\sdl2-32bit\include\sdl2\sdl_ttf.h
+	"SDL.h"
+	"begin_code.h"
+	"close_code.h"
+
+1480942743 c:\users\hypernek\documents\github\earlofsandwichc\sprite.h
+	<SDL.h>
+	<SDL_ttf.h>
+	<SDL_image.h>
+	<stdio.h>
+	<string>
+
+1480942749 source:c:\users\hypernek\documents\github\earlofsandwichc\sprite.cpp
+	<SDL.h>
+	<SDL_ttf.h>
+	<SDL_image.h>
+	<stdio.h>
+	<string>
+	"sprite.h"
+
+1480944504 c:\users\hypernek\documents\github\earlofsandwichc\constants.h
+	<SDL.h>
 
