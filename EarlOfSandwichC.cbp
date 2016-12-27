@@ -39,7 +39,9 @@
 			<Add directory="C:/Program Files/CodeBlocks/MinGW/SDL/lib" />
 		</Linker>
 		<Unit filename="constants.cpp" />
+		<Unit filename="constants.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="sprite.cpp" />
 		<Unit filename="sprite.h" />
 		<Extensions>
 			<code_completion />

@@ -1,9 +1,5 @@
 # depslib dependency file v1.0
-1480945428 source:c:\users\hypernek\documents\github\earlofsandwichc\main.cpp
-	<SDL.h>
-	<SDL_image.h>
-	<stdio.h>
-	<string>
+1481627746 source:c:\users\hypernek\documents\github\earlofsandwichc\main.cpp
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
@@ -670,14 +666,14 @@
 	"begin_code.h"
 	"close_code.h"
 
-1480942743 c:\users\hypernek\documents\github\earlofsandwichc\sprite.h
+1481266873 c:\users\hypernek\documents\github\earlofsandwichc\sprite.h
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
 	<stdio.h>
 	<string>
 
-1480942749 source:c:\users\hypernek\documents\github\earlofsandwichc\sprite.cpp
+1481266898 source:c:\users\hypernek\documents\github\earlofsandwichc\sprite.cpp
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
@@ -685,6 +681,6 @@
 	<string>
 	"sprite.h"
 
-1480944504 c:\users\hypernek\documents\github\earlofsandwichc\constants.h
+1481265498 c:\users\hypernek\documents\github\earlofsandwichc\constants.h
 	<SDL.h>
 

@@ -1,159 +1,3 @@
-/*#include <iostream>
-#include <SDL.h>
-#include <SDL_image.h>
-#include <stdio.h>
-#include <string>
-
-SDL_Texture* loadTexture( std::string path, SDL_Renderer * render );
-
-// nejake konstanty
-static int SCREEN_WIDTH = 1000;
-static int SCREEN_HEIGHT = 700;
-
-int main(int argc,char**argv)
-{
-
-	SDL_Init(SDL_INIT_VIDEO);
-
-    SDL_Texture * texture;
-    SDL_Window * okno;
-	okno=SDL_CreateWindow("Earl of Sandwich", //nazev
-				SDL_WINDOWPOS_UNDEFINED,
-                SDL_WINDOWPOS_UNDEFINED,  //pozice (posouvatelne okno)
-				SCREEN_WIDTH,SCREEN_HEIGHT, //rozmer
-				0);	//flags
-
-	SDL_Renderer* render;
-
-	render=SDL_CreateRenderer(okno,-1,SDL_RENDERER_ACCELERATED);
-
-	bool success = true;
-    if( render == NULL )
-    {
-        printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
-        success = false;
-    }
-    else
-    {
-        //Initialize renderer color
-        SDL_SetRenderDrawColor( render, 0xFF, 0xFF, 0xFF, 0xFF );
-
-        //Initialize PNG loading
-        int imgFlags = IMG_INIT_JPG;
-        if( !( IMG_Init( imgFlags ) & imgFlags ) )
-        {
-            printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
-            success = false;
-        }
-    }
-
-    texture = loadTexture("windowsontheworld.jpg", render);
-
-    // vyrob plosinku
-	SDL_Rect obdelnik;
-	obdelnik.x=450;
-	obdelnik.y=650;
-	obdelnik.w=100;
-	obdelnik.h=20;
-
-    int rychlost = 50;
-
-    // prvni vyrenderovani
-    SDL_SetRenderDrawColor(render,255,255,255,255);
-    SDL_RenderCopy(render, texture, NULL, NULL);
-    SDL_RenderPresent(render);
-    SDL_RenderClear( render);
-
-    SDL_SetRenderDrawColor(render,0,0,0,255);
-    SDL_RenderFillRect(render,&obdelnik);
-    SDL_RenderPresent(render);
-
-	int state=1;
-	while(state)
-	{
-		SDL_Event udalost;
-		while(SDL_PollEvent(&udalost))
-		{
-            // chytani klavesnice
-			if(udalost.type==SDL_QUIT)
-				// ukonci hru
-				state=0;
-
-			if(udalost.type==SDL_KEYDOWN)
-			{
-			    if(udalost.key.keysym.sym==SDLK_ESCAPE)
-                {
-                    // ukonci hru
-                    state=0;
-                }
-                // ziskej stav klaves na klavesnici
-                const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
-			    // pohyb plosinky doleva a doprava
-                if( currentKeyStates[ SDL_SCANCODE_LEFT ] && obdelnik.x > 0)
-				{
-                    SDL_SetRenderDrawColor(render,0,255,0,255);
-                    obdelnik.x = obdelnik.x -rychlost;
-				}
-                if( currentKeyStates[ SDL_SCANCODE_RIGHT ] && obdelnik.x < SCREEN_WIDTH - obdelnik.w)
-				{
-                    SDL_SetRenderDrawColor(render,255,100,200,255);
-				    obdelnik.x = obdelnik.x +rychlost;
-				}
-                // prekresli obdelnik
-                SDL_RenderCopy(render, texture, NULL, NULL);
-                SDL_RenderFillRect(render,&obdelnik);
-                SDL_RenderPresent(render);
-
-                SDL_Delay(20);
-			}
-		}
-	}
-
-    // Ukoncit, uklidit
-	//Free loaded image
-	SDL_DestroyTexture( texture );
-	texture = NULL;
-
-	//Destroy window
-	SDL_DestroyRenderer( render );
-	SDL_DestroyWindow( okno );
-	okno = NULL;
-	render = NULL;
-
-	//Quit SDL subsystems
-	IMG_Quit();
-	SDL_Quit();
-
-return 0;
-}
-
-SDL_Texture* loadTexture( std::string path , SDL_Renderer* render )
-{
-	//The final texture
-	SDL_Texture* newTexture = NULL;
-
-	//Load image at specified path
-	SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
-	if( loadedSurface == NULL )
-	{
-		printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
-	}
-	else
-	{
-		//Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface( render, loadedSurface );
-		if( newTexture == NULL )
-		{
-			printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
-		}
-
-		//Get rid of old loaded surface
-		SDL_FreeSurface( loadedSurface );
-	}
-
-	return newTexture;
-}*/
-
 //Using SDL, SDL_image, standard math, and strings
 #include <SDL.h>
 #include <SDL_ttf.h>
@@ -169,14 +13,21 @@ const int SCREEN_WIDTH = 980;
 const int SCREEN_HEIGHT = 720;
 
 //Texture wrapper class
-class LTexture
+
+//The window we'll be rendering to
+SDL_Window* gWindow = NULL;
+
+//The window renderer
+SDL_Renderer* gRenderer = NULL;
+
+class Sprite
 {
 	public:
 		//Initializes variables
-		LTexture();
+		Sprite();
 
 		//Deallocates memory
-		~LTexture();
+		~Sprite();
 
 		//Loads image at specified path
 		bool loadFromFile( std::string path );
@@ -185,11 +36,18 @@ class LTexture
 		void free();
 
 		//Renders texture at given point
-		void render( int x, int y, SDL_Rect* clip = NULL );
+		void render(int x, int y, SDL_Rect* clip = NULL );
+
+        // sprite Rect
+		int x;
+		int y;
 
 		//Gets image dimensions
 		int getWidth();
 		int getHeight();
+        //TODO
+
+        //SDL_Rect(this.x, this.y, this.w, this.h);
 
 	private:
 		//The actual hardware texture
@@ -199,28 +57,7 @@ class LTexture
 		int mWidth;
 		int mHeight;
 };
-
-//Starts up SDL and creates window
-bool init();
-
-//Loads media
-bool loadMedia();
-
-//Frees media and shuts down SDL
-void close();
-
-//The window we'll be rendering to
-SDL_Window* gWindow = NULL;
-
-//The window renderer
-SDL_Renderer* gRenderer = NULL;
-
-//Scene sprites
-SDL_Rect gSpriteClips[ 4 ];
-LTexture gSpriteSheetTexture;
-
-
-LTexture::LTexture()
+Sprite::Sprite()
 {
 	//Initialize
 	mTexture = NULL;
@@ -228,13 +65,13 @@ LTexture::LTexture()
 	mHeight = 0;
 }
 
-LTexture::~LTexture()
+Sprite::~Sprite()
 {
 	//Deallocate
 	free();
 }
 
-bool LTexture::loadFromFile( std::string path )
+bool Sprite::loadFromFile( std::string path )
 {
 	//Get rid of preexisting texture
 	free();
@@ -275,7 +112,7 @@ bool LTexture::loadFromFile( std::string path )
 	return mTexture != NULL;
 }
 
-void LTexture::free()
+void Sprite::free()
 {
 	//Free texture if it exists
 	if( mTexture != NULL )
@@ -287,7 +124,7 @@ void LTexture::free()
 	}
 }
 
-void LTexture::render( int x, int y, SDL_Rect* clip )
+void Sprite::render( int x, int y, SDL_Rect* clip )
 {
 	//Set rendering space and render to screen
 	SDL_Rect renderQuad = { x, y, mWidth, mHeight };
@@ -303,15 +140,29 @@ void LTexture::render( int x, int y, SDL_Rect* clip )
 	SDL_RenderCopy( gRenderer, mTexture, clip, &renderQuad );
 }
 
-int LTexture::getWidth()
+int Sprite::getWidth()
 {
 	return mWidth;
 }
 
-int LTexture::getHeight()
+int Sprite::getHeight()
 {
 	return mHeight;
 }
+
+//Starts up SDL and creates window
+bool init();
+
+//Loads media
+bool loadMedia();
+
+//Frees media and shuts down SDL
+void close();
+
+//Scene sprites
+SDL_Rect gSpriteClips[ 4 ];
+Sprite gSpriteSheetTexture;
+Sprite kulicka;
 
 bool init()
 {
@@ -405,7 +256,7 @@ bool loadMedia()
 	bool success = true;
 
 	//Load sprite sheet texture
-	if( !gSpriteSheetTexture.loadFromFile( "dots.png" ) )
+	if( !gSpriteSheetTexture.loadFromFile( "dots.png" ) || !kulicka.loadFromFile("dots.png") )
 	{
 		printf( "Failed to load sprite sheet texture!\n" );
 		success = false;
@@ -444,6 +295,7 @@ void close()
 {
 	//Free loaded images
 	gSpriteSheetTexture.free();
+	kulicka.free();
 
 	//Destroy window
 	SDL_DestroyRenderer( gRenderer );
@@ -468,6 +320,11 @@ int main( int argc, char* args[] )
 	obdelnik.h=20;
 
     int rychlost = 50;
+
+    int velX = 20;
+    int velY = 40;
+    kulicka.x = 100;
+    kulicka.y = 100;
 	//Start up SDL and create window
 	if( !init() )
 	{
@@ -531,10 +388,7 @@ int main( int argc, char* args[] )
 				//Render top left sprite
 
                 // prekresli obdelnik
-                SDL_RenderCopy(gRenderer, texture, NULL, NULL);
-                SDL_RenderFillRect(gRenderer,&obdelnik);
-                gSpriteSheetTexture.render( 0, 0, &gSpriteClips[ counter ] );
-				if (counter > 3)
+                if (counter > 3)
                 {
                     counter = 0;
                 }
@@ -542,9 +396,35 @@ int main( int argc, char* args[] )
                 {
                     counter = 3;
                 }
+                // posun kulicku
+                if(0 < kulicka.x && kulicka.x < SCREEN_WIDTH -kulicka.getWidth())
+                {
+                    kulicka.x = kulicka.x + velX;
+                }
+                else
+                {
+                    //odraz se
+                    velX = -velX;
+                    kulicka.x = kulicka.x + velX;
+                }
+                if(0 < kulicka.y && kulicka.y < SCREEN_HEIGHT -kulicka.getHeight())
+                {
+                    kulicka.y = kulicka.y + velY;
+                }
+                else
+                {
+                    //odraz se
+                    velY = -velY;
+                    kulicka.y = kulicka.y + velY;
+                }
+                // vypln pozadi
+                SDL_RenderCopy(gRenderer, texture, NULL, NULL);
+                SDL_RenderFillRect(gRenderer,&obdelnik);
+                gSpriteSheetTexture.render( 0, 0, &gSpriteClips[ counter ] );
+                kulicka.render(kulicka.x, kulicka.y, &gSpriteClips[ 2 ] );
 				//Update screen
 				SDL_RenderPresent( gRenderer );
-				SDL_Delay(20);
+				SDL_Delay(100);
 			}
 		}
 	}

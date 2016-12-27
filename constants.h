@@ -9,7 +9,7 @@
 //Performance constants
 const int MAX_FPS = 60;
 
-//Color constants
+//ztruktury barev
 SDL_Color WHITE = {255,255,255,255};
 SDL_Color BLACK = {0,0,0,255};
 SDL_Color RED = {255,0,0,255};
