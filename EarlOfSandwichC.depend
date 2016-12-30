@@ -327,9 +327,15 @@
 	"begin_code.h"
 	"close_code.h"
 
-1478455360 source:i:\earlofsandwichc\main.cpp
-	<iostream>
+1483023316 source:i:\earlofsandwichc\main.cpp
 	<SDL.h>
+	<SDL_ttf.h>
+	<SDL_image.h>
+	<stdio.h>
+	<string>
+	<cmath>
+	"sprite.h"
+	"constants.h"
 
 1476932294 c:\program files\codeblocks\mingw\sdl\include\sdl2\sdl.h
 	"SDL_main.h"
@@ -650,8 +656,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1478452113 source:i:\earlofsandwichc\constants.cpp
-	<SDL.h>
+1482860721 source:i:\earlofsandwichc\constants.cpp
 
 1480944493 source:c:\users\hypernek\documents\github\earlofsandwichc\constants.cpp
 
@@ -683,4 +688,33 @@
 
 1481265498 c:\users\hypernek\documents\github\earlofsandwichc\constants.h
 	<SDL.h>
+
+1454362933 c:\program files\codeblocks\mingw\sdl\include\sdl2\sdl_ttf.h
+	"SDL.h"
+	"begin_code.h"
+	"close_code.h"
+
+1451800373 c:\program files\codeblocks\mingw\sdl\include\sdl2\sdl_image.h
+	"SDL.h"
+	"SDL_version.h"
+	"begin_code.h"
+	"close_code.h"
+
+1482860721 i:\earlofsandwichc\sprite.h
+	<SDL.h>
+	<SDL_ttf.h>
+	<SDL_image.h>
+	<stdio.h>
+	<string>
+
+1482860721 i:\earlofsandwichc\constants.h
+	<SDL.h>
+
+1482860721 source:i:\earlofsandwichc\sprite.cpp
+	<SDL.h>
+	<SDL_ttf.h>
+	<SDL_image.h>
+	<stdio.h>
+	<string>
+	"sprite.h"
 
