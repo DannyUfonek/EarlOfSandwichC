@@ -11,7 +11,7 @@
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 980;
-const int SCREEN_HEIGHT = 720;
+const int SCREEN_HEIGHT = 980;
 
 //The window we'll be rendering to
 SDL_Window* okno = NULL;
@@ -23,148 +23,13 @@ SDL_Renderer* renderer = NULL;
 TTF_Font* titleFont = NULL;
 TTF_Font* arcadeFont = NULL;
 
-class Sprite
-{
-	public:
-		//Initializes variables
-		Sprite();
 
-		//Deallocates memory
-		~Sprite();
 
-		//Loads a previously created texture into sprite's texture
-		bool loadTexture(SDL_Surface * surface, int customWidth = -1, int customHeight = -1);
+//=============================================================
 
-		//Deallocates texture
-		void free();
 
-		//Renders sprite at given point
-		void render(SDL_Rect* clip = NULL );
 
-        SDL_Rect sRect;
-
-		//Gets image dimensions
-		int getWidth();
-		int getHeight();
-        //TODO
-        /*
-        // sprite position
-		int x;
-		int y;
-		//Image dimensions
-		int sWidth;
-		int sHeight;
-		*/
-
-	private:
-		//The actual hardware texture
-		SDL_Texture* sTexture;
-
-};
-Sprite::Sprite()
-{
-	//Initialize
-	sTexture = NULL;
-	sRect.x = 0;
-	sRect.y = 0;
-    sRect.w = 0;
-	sRect.h = 0;
-}
-
-Sprite::~Sprite()
-{
-	//Deallocate
-	free();
-}
-
-bool Sprite::loadTexture( SDL_Surface*surface , int customWidth, int customHeight)
-{
-    // NALOADUJE TEXTURE Z EXISTUJICIHO SURFACE
-    // volitelne argumenty, pokud ma vysledny Rect byt mensi nez nacteny Surface (dobre pro nacitani spritesheetu)
-	//Get rid of preexisting texture
-	free();
-
-	//The final texture
-	SDL_Texture* newTexture = NULL;
-
-	if( surface == NULL )
-	{
-		printf( "Unable to load image! SDL_image Error: %s\n", IMG_GetError() );
-	}
-	else
-	{
-		//Color key image
-		SDL_SetColorKey( surface, SDL_TRUE, SDL_MapRGB( surface->format, 0, 0xFF, 0xFF ) );
-
-		//Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface( renderer, surface );
-		if( newTexture == NULL )
-		{
-			printf( "Unable to create texture from image! SDL Error: %s\n", SDL_GetError() );
-		}
-		else
-		{
-		    if (customWidth > 0 && customHeight > 0)
-            {
-                //zapis do Rectu vlastni sirku a vysku
-                sRect.w = customWidth;
-                sRect.h = customHeight;
-            }
-            else
-            {
-                //zapis do Rectu velikost obrazku
-                sRect.w = surface->w;
-                sRect.h = surface->h;
-            }
-
-		}
-
-	}
-
-	//Return success
-	sTexture = newTexture;
-	return sTexture != NULL;
-}
-
-void Sprite::free()
-{
-	//Free texture if it exists
-	if( sTexture != NULL )
-	{
-		SDL_DestroyTexture( sTexture );
-		sTexture = NULL;
-        sRect.x = 0;
-        sRect.y = 0;
-        sRect.w = 0;
-        sRect.h = 0;
-	}
-}
-
-void Sprite::render( SDL_Rect* clip )
-{
-
-	//Set clip rendering dimensions
-	if( clip != NULL )
-	{
-		sRect.w = clip->w;
-		sRect.h = clip->h;
-	}
-
-	//Render sprite to screen
-	SDL_RenderCopy( renderer, sTexture, clip, &sRect );
-}
-
-// PUBLIC METHODS
-int Sprite::getWidth()
-{
-	return sRect.w;
-}
-
-int Sprite::getHeight()
-{
-	return sRect.h;
-}
-
+//================================================================
 //Starts up SDL and creates window
 bool init();
 
@@ -294,8 +159,8 @@ bool loadMedia()
 	}
 
 	//Load sprite sheet texture
-	if( !gSpriteSheetTexture.loadTexture(loadSurfaceFromFile("dots.png", renderer))
-        || !kulicka.loadTexture(loadSurfaceFromFile("dots.png", renderer), 100, 100) )
+	if( !gSpriteSheetTexture.loadTexture(loadSurfaceFromFile("dots.png", renderer), renderer)
+        || !kulicka.loadTexture(loadSurfaceFromFile("dots.png", renderer), renderer, 100, 100) )
 	{
 		printf( "Failed to load sprite sheet texture!\n" );
 		success = false;
@@ -328,8 +193,8 @@ bool loadMedia()
 
 	}
 	// nacti textove sprity
-    if( !nadpis.loadTexture(renderSurfaceFromText(titleFont, "Earl of Sandwich", {255, 0, 0, 255}))
-       ||!pressanykey.loadTexture(renderSurfaceFromText(arcadeFont, "Press any key to play", {255, 0, 0, 255})))
+    if( !nadpis.loadTexture(renderSurfaceFromText(titleFont, "Earl of Sandwich", {255, 0, 0, 255}), renderer)
+       ||!pressanykey.loadTexture(renderSurfaceFromText(arcadeFont, "Press any key to play", {255, 0, 0, 255}),renderer))
 	{
 		printf( "Failed to load text!\n" );
 		success = false;
@@ -417,9 +282,9 @@ int main( int argc, char* args[] )
 
 		    //===============================TITLE SCREEN=======================================
             // posun veci na spravne misto
-            nadpis.sRect.x = SCREEN_WIDTH/2 - nadpis.getWidth()/2;
+            nadpis.sRect.x = SCREEN_WIDTH/2 - nadpis.sRect.w/2;
             nadpis.sRect.y = 100;
-            pressanykey.sRect.x = SCREEN_WIDTH/2 - pressanykey.getWidth()/2;
+            pressanykey.sRect.x = SCREEN_WIDTH/2 - pressanykey.sRect.w/2;
             pressanykey.sRect.y = 600;
 
 		    while( !start)
@@ -451,10 +316,10 @@ int main( int argc, char* args[] )
                 SDL_SetRenderDrawColor(renderer,0,0,0,255);
                 SDL_RenderFillRect(renderer, NULL);
 
-                nadpis.render();
+                nadpis.render(renderer);
                 if(counter/30 == 1)
                 {
-                    pressanykey.render();
+                    pressanykey.render(renderer);
                     ++counter;
                     if(counter/30 == 2)
                     {
@@ -476,7 +341,7 @@ int main( int argc, char* args[] )
 				//Handle events on queue
 				while( SDL_PollEvent( &e ) != 0 )
 				{
-					//User requests quit
+					//uzivatel vykrizkuje okno
 					if( e.type == SDL_QUIT )
 					{
 						quit = true;
@@ -517,7 +382,7 @@ int main( int argc, char* args[] )
                     counter = 3;
                 }
                 // ======= POHYB KULICKY =========
-                if(0 < kulicka.sRect.x && kulicka.sRect.x < SCREEN_WIDTH -kulicka.getWidth())
+                if(0 < kulicka.sRect.x && kulicka.sRect.x < SCREEN_WIDTH -kulicka.sRect.w)
                 {
                     kulicka.sRect.x = kulicka.sRect.x + velX;
                 }
@@ -537,7 +402,7 @@ int main( int argc, char* args[] )
                     velY = -velY;
                     kulicka.sRect.y = kulicka.sRect.y + velY;
                 }
-                if (kulicka.sRect.y + kulicka.sRect.h >= obdelnik.y && fabs(kulicka.sRect.x - obdelnik.x) < kulicka.sRect.w)
+                if (kulicka.sRect.y + kulicka.sRect.h >= obdelnik.y && SDL_HasIntersection(&kulicka.sRect, &obdelnik) == SDL_TRUE)
                 {
                     // proved kolizi s plosinkou
                     velY = -velY;
@@ -564,8 +429,7 @@ int main( int argc, char* args[] )
                 // vypln pozadi
                 SDL_RenderCopy(renderer, background, NULL, NULL);
                 SDL_RenderFillRect(renderer,&obdelnik);
-                gSpriteSheetTexture.render( &gSpriteClips[ counter ] );
-                kulicka.render(&gSpriteClips[ 2 ] );
+                kulicka.render(renderer, &gSpriteClips[ 2 ] );
 				//Update screen
 				SDL_RenderPresent( renderer );
 			}
