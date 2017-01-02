@@ -19,12 +19,14 @@ SDL_Color RED = {255,0,0,255};
 SDL_Window* okno = NULL;
 
 //The window renderer
-SDL_Renderer* renderer = NULL;
+SDL_Renderer* gameRenderer = NULL;
 
 //Globally used fonts
 TTF_Font* titleFont = NULL;
 TTF_Font* arcadeFont = NULL;
-
+TTF_Font* monoFont = NULL;
+TTF_Font* insulaFont = NULL;
+TTF_Font* gothicFont = NULL;
 
 
 //================================================================
@@ -37,15 +39,21 @@ bool loadMedia();
 //Frees media and shuts down SDL
 void close();
 
-//Scene sprites
-SDL_Rect gSpriteClips[ 4 ];
-Sprite gSpriteSheetTexture;
-
 Sprite plosinka;
 Projectile kulicka(10,10,100,100);
+glyphProjectile a('a', 10,10,100,100);
 // text
 Sprite nadpis;
 Sprite pressanykey;
+
+//LEVELY (POSTUPNE BY MELY BYT NACITANY Z EXTERNIHO SOUBORU)
+char*level_one[9] = {"a", "o", "co", "tu", "jen", "jde", "chyt", "tohle", "vsechno"};
+int levelLength = 9;
+
+// HERNI DATA
+int lives = 3;
+int score = 0;
+
 
 bool init()
 {
@@ -67,7 +75,7 @@ bool init()
 		}
 
 		//Create window
-		okno = SDL_CreateWindow( "Earl of Sandwich",
+		okno = SDL_CreateWindow( "GLYPH PONG v0.01",
                              SDL_WINDOWPOS_UNDEFINED,
                              SDL_WINDOWPOS_UNDEFINED,  // posouvatelne okno
                              SCREEN_WIDTH, SCREEN_HEIGHT, // viz zacatek
@@ -79,17 +87,18 @@ bool init()
 		}
 		else
 		{
-			//Create renderer for window
-			renderer = SDL_CreateRenderer( okno, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC); // VSYNC zajisti 60 fps, dale to nemusime resit
-			if( renderer == NULL )
+			//Create gameRenderer for window
+			gameRenderer = SDL_CreateRenderer( okno, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC); // VSYNC zajisti 60 fps, dale to nemusime resit
+			if( gameRenderer == NULL )
 			{
-				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
+				printf( "gameRenderer could not be created! SDL Error: %s\n", SDL_GetError() );
 				success = false;
 			}
 			else
 			{
+			    printf("created renderer \n");
 				//Initialize renderer color
-				SDL_SetRenderDrawColor( renderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a );
+				SDL_SetRenderDrawColor( gameRenderer, WHITE.r, WHITE.g, WHITE.b, WHITE.a );
 
 				//Initialize PNG loading
 				int imgFlags = IMG_INIT_JPG;
@@ -112,7 +121,7 @@ bool init()
 }
 
 // FUNKCE PRO NACTENI OBRAZKU ZE SOUBORU DO SURFACE
-SDL_Surface* loadSurfaceFromFile( std::string path , SDL_Renderer* render )
+SDL_Surface* loadSurfaceFromFile( std::string path )
 {
 
 	//Load image at specified path
@@ -120,8 +129,12 @@ SDL_Surface* loadSurfaceFromFile( std::string path , SDL_Renderer* render )
 
 	if( loadedSurface == NULL )
 	{
-		printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
+		printf( "Unable to load image %s! SDL_image Error: %s \n", path.c_str(), IMG_GetError() );
 	}
+	else
+    {
+        printf("successfully loaded image from %s into surface\n", path.c_str());
+    }
 
 	return loadedSurface;
 }
@@ -129,12 +142,16 @@ SDL_Surface* loadSurfaceFromFile( std::string path , SDL_Renderer* render )
 SDL_Surface* renderSurfaceFromText(TTF_Font* font, std::string text, SDL_Color textColor )
 {
 	//Render text surface
-	SDL_Surface* textSurface = TTF_RenderText_Solid( font, text.c_str(), textColor );
+	SDL_Surface* textSurface = TTF_RenderText_Blended( font, text.c_str(), textColor );
 
     if( textSurface == NULL )
 	{
 		printf( "Unable to render text %s! SDL_TTF Error: %s\n", text.c_str(), TTF_GetError() );
 	}
+	else
+    {
+        printf("successfully rendered text '%s' into surface\n", text.c_str());
+    }
 	//Return success
 	return textSurface;
 }
@@ -157,69 +174,110 @@ bool loadMedia()
 		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
 		success = false;
 	}
-
+	monoFont = TTF_OpenFont("courbd.ttf", 80);
+    if( monoFont == NULL )
+	{
+		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
+		success = false;
+	}
+	insulaFont = TTF_OpenFont("INSULA_.ttf", 80);
+    if( insulaFont == NULL )
+	{
+		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
+		success = false;
+	}
+	gothicFont = TTF_OpenFont("ArgBrujS.ttf", 80);
+	if( gothicFont == NULL )
+	{
+		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
+		success = false;
+	}
+    /*
 	//Load sprite sheet texture
-	if( !gSpriteSheetTexture.loadTexture(loadSurfaceFromFile("dots.png", renderer), renderer)
-        || !kulicka.loadTexture(loadSurfaceFromFile("dots.png", renderer), renderer, 100, 100) )
+	SDL_Surface*sI = loadSurfaceFromFile("dotsSmall.png");
+	// najdi pruhledne pixely
+	SDL_SetColorKey(sI,SDL_TRUE, SDL_MapRGB(sI->format, 0,255,255));
+	SDL_SetSurfaceBlendMode(sI,SDL_BLENDMODE_NONE);
+
+    //cervena
+    gSpriteClips[ 0 ].x =   0;
+    gSpriteClips[ 0 ].y =   0;
+    gSpriteClips[ 0 ].w = 50;
+    gSpriteClips[ 0 ].h = 50;
+
+    //zluta
+    gSpriteClips[ 1 ].x = 50;
+    gSpriteClips[ 1 ].y =   0;
+    gSpriteClips[ 1 ].w = 50;
+    gSpriteClips[ 1 ].h = 50;
+
+    //zelena
+    gSpriteClips[ 2 ].x =  0;
+    gSpriteClips[ 2 ].y = 50;
+    gSpriteClips[ 2 ].w = 50;
+    gSpriteClips[ 2 ].h = 50;
+
+    //modra
+    gSpriteClips[ 3 ].x = 50;
+    gSpriteClips[ 3 ].y = 50;
+    gSpriteClips[ 3 ].w = 50;
+    gSpriteClips[ 3 ].h = 50;
+
+	if( !gSpriteSheetTexture.loadTexture(SDL_CreateTextureFromSurface(gameRenderer,sI), sI->w, sI->h)
+        || !kulicka.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, sI), 50, 50))
 	{
 		printf( "Failed to load sprite sheet texture!\n" );
 		success = false;
 	}
 	else
 	{
-		//Set top left sprite
-		gSpriteClips[ 0 ].x =   0;
-		gSpriteClips[ 0 ].y =   0;
-		gSpriteClips[ 0 ].w = 100;
-		gSpriteClips[ 0 ].h = 100;
 
-		//Set top right sprite
-		gSpriteClips[ 1 ].x = 100;
-		gSpriteClips[ 1 ].y =   0;
-		gSpriteClips[ 1 ].w = 100;
-		gSpriteClips[ 1 ].h = 100;
-
-		//Set bottom left sprite
-		gSpriteClips[ 2 ].x =   0;
-		gSpriteClips[ 2 ].y = 100;
-		gSpriteClips[ 2 ].w = 50;
-		gSpriteClips[ 2 ].h = 50;
-
-		//Set bottom right sprite
-		gSpriteClips[ 3 ].x = 100;
-		gSpriteClips[ 3 ].y = 100;
-		gSpriteClips[ 3 ].w = 100;
-		gSpriteClips[ 3 ].h = 100;
 
 	}
-	// nacti textove sprity
-    if( !nadpis.loadTexture(renderSurfaceFromText(titleFont, "Earl of Sandwich", {255, 0, 0, 255}), renderer)
-       ||!pressanykey.loadTexture(renderSurfaceFromText(arcadeFont, "Press any key to play", {255, 0, 0, 255}),renderer))
+	*/
+	// vyrob textove sprity
+	SDL_Surface*s1 = renderSurfaceFromText(insulaFont, "GLYPH PONG", {255, 255, 255, 255});
+	SDL_Surface*s2 = renderSurfaceFromText(insulaFont, "Press any key to play", {255, 255, 255, 255});
+    SDL_Surface*s3 = renderSurfaceFromText(insulaFont, &a.glyph, {0, 0, 0, 255});
+
+    if( !nadpis.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, s1), s1->w, s1->h)
+       ||!pressanykey.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, s2), s2->w, s2->h)
+       ||!a.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, s3), s3->w, s3->h))
 	{
 		printf( "Failed to load text!\n" );
 		success = false;
 	}
+
+
 	return success;
 }
 
 void close()
 {
 	//Free loaded images
-	gSpriteSheetTexture.free();
+	//gSpriteSheetTexture.free();
 	plosinka.free();
 	nadpis.free();
+	//kulicka.free();
+	a.free();
 
 	// vymaz fonty
 	TTF_CloseFont( titleFont );
 	titleFont = NULL;
 	TTF_CloseFont( arcadeFont );
 	arcadeFont = NULL;
+    TTF_CloseFont( monoFont );
+	monoFont = NULL;
+	TTF_CloseFont( insulaFont );
+	insulaFont = NULL;
+	TTF_CloseFont( gothicFont );
+	gothicFont = NULL;
 
 	//Destroy window
-	SDL_DestroyRenderer( renderer );
+	SDL_DestroyRenderer( gameRenderer );
 	SDL_DestroyWindow( okno );
 	okno = NULL;
-	renderer = NULL;
+	gameRenderer = NULL;
 
 	//Quit SDL subsystems
 	TTF_Quit();
@@ -231,30 +289,6 @@ int counter = 0;
 
 int main( int argc, char* args[] )
 {
-    //vyrob Rect pro obrazovku
-    SDL_Rect obrazovka;
-    obrazovka.x = 0;
-    obrazovka.y = 0;
-    obrazovka.w = SCREEN_WIDTH;
-    obrazovka.h = SCREEN_HEIGHT;
-    // vyrob plosinku a posun na spravne misto
-	Sprite plosinka;
-	SDL_Surface * s;
-	s = SDL_CreateRGBSurface(0, 100, 20, 32,0,0,0,0);
-    if (s == NULL) {
-        printf("SDL_CreateRGBSurface() failed: %s", SDL_GetError());
-    }
-
-	SDL_FillRect(s, NULL, SDL_MapRGB(s->format,0,0,0));
-    plosinka.loadTexture(s, renderer);
-	plosinka.sRect.x=450;
-	plosinka.sRect.y=650;
-    int rychlost = 100;
-
-    // inicializuj kulicku
-    //Projectile kulicka(10,10,100,100);
-
-
 	//Start up SDL and create window
 	if( !init() )
 	{
@@ -265,7 +299,7 @@ int main( int argc, char* args[] )
 	    // vyrob pozadi
         SDL_Texture * background;
         // muzeme rovnou prevest na texture, neresime totiz, jak velke pozadi bude, takze ztrata informace sirky a vysky nevadi.
-        background = SDL_CreateTextureFromSurface(renderer, loadSurfaceFromFile("windowsontheworld.jpg", renderer));
+        background = SDL_CreateTextureFromSurface(gameRenderer, loadSurfaceFromFile("old-paper-parchment-plain-med.jpg"));
 		//Load media
 		if( !loadMedia() )
 		{
@@ -279,6 +313,28 @@ int main( int argc, char* args[] )
 			SDL_Event e;
 
 			//prvni vyrenderovani
+            //vyrob Rect pro obrazovku
+            SDL_Rect obrazovka;
+            obrazovka.x = 0;
+            obrazovka.y = 0;
+            obrazovka.w = SCREEN_WIDTH;
+            obrazovka.h = SCREEN_HEIGHT;
+            // vyrob plosinku a posun na spravne misto
+            //Sprite plosinka;
+            SDL_Surface * s;
+            s = SDL_CreateRGBSurface(0, 100, 20, 32,0,0,0,0);
+            if (s == NULL) {
+                printf("SDL_CreateRGBSurface() failed: %s", SDL_GetError());
+            }
+
+            SDL_FillRect(s, NULL, SDL_MapRGB(s->format,0,0,0));
+            plosinka.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, s), s->w, s->h);
+            plosinka.sRect.x=450;
+            plosinka.sRect.y=850;
+            int rychlost = 100;
+
+            // inicializuj kulicku
+            //Projectile kulicka(10,10,100,100);
 
 
 		    //===============================TITLE SCREEN=======================================
@@ -314,13 +370,13 @@ int main( int argc, char* args[] )
                         }
                     }
 				}
-                SDL_SetRenderDrawColor(renderer,0,0,0,255);
-                SDL_RenderFillRect(renderer, NULL);
+                SDL_SetRenderDrawColor(gameRenderer,0,0,0,255);
+                SDL_RenderFillRect(gameRenderer, NULL);
 
-                nadpis.render(renderer);
+                nadpis.render(gameRenderer);
                 if(counter/30 == 1)
                 {
-                    pressanykey.render(renderer);
+                    pressanykey.render(gameRenderer);
                     ++counter;
                     if(counter/30 == 2)
                     {
@@ -331,7 +387,7 @@ int main( int argc, char* args[] )
                 {
                     ++counter;
                 }
-                SDL_RenderPresent( renderer );
+                SDL_RenderPresent( gameRenderer );
 
             }
 			//===============================MAIN LOOP===================================
@@ -359,13 +415,15 @@ int main( int argc, char* args[] )
                         // pohyb plosinky doleva a doprava
                         if( currentKeyStates[ SDL_SCANCODE_LEFT ] && plosinka.sRect.x > 0)
                         {
-                            SDL_SetRenderDrawColor(renderer,0,255,0,255);
+                            SDL_SetRenderDrawColor(gameRenderer,0,255,0,255);
                             plosinka.sRect.x = plosinka.sRect.x -rychlost;
+                            printf("x pozice = %i\n", plosinka.sRect.x);
                         }
                         if( currentKeyStates[ SDL_SCANCODE_RIGHT ] && plosinka.sRect.x < SCREEN_WIDTH - plosinka.sRect.w)
                         {
-                            SDL_SetRenderDrawColor(renderer,255,100,200,255);
+                            SDL_SetRenderDrawColor(gameRenderer,255,100,200,255);
                             plosinka.sRect.x = plosinka.sRect.x +rychlost;
+                            printf("x pozice = %i\n", plosinka.sRect.x);
                         }
                     }
 				}
@@ -383,13 +441,17 @@ int main( int argc, char* args[] )
                     counter = 3;
                 }
 
-                kulicka.update(&plosinka);
+                //kulicka.update(&plosinka);
+                a.update(&plosinka);
                 // vypln pozadi
-                SDL_RenderCopy(renderer, background, NULL, NULL);
-                plosinka.render(renderer);
-                kulicka.render(renderer, &gSpriteClips[ 2 ] );
+                SDL_RenderCopy(gameRenderer, background, NULL, NULL);
+                SDL_RenderFillRect(gameRenderer,&plosinka.sRect);
+                plosinka.render(gameRenderer);
+                //kulicka.render(gameRenderer, &gSpriteClips[ 2 ] );
+                a.render(gameRenderer);
+                //SDL_RenderFillRect(gameRenderer,&kulicka.sRect);
 				//Update screen
-				SDL_RenderPresent( renderer );
+				SDL_RenderPresent( gameRenderer );
 			}
 		}
 	}

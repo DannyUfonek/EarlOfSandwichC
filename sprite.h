@@ -16,7 +16,7 @@ class Sprite
 		~Sprite();
 
 		//Loads a previously created texture into sprite's texture
-		bool loadTexture(SDL_Surface * surface, SDL_Renderer* renderer, int customWidth = -1, int customHeight = -1);
+		bool loadTexture(SDL_Texture*newTexture, int width = -1, int height = -1);
 
 		//Deallocates texture
 		void free();
@@ -27,10 +27,12 @@ class Sprite
         // moznost - predelat na getX,getY,getW,getH
         SDL_Rect sRect;
 
+        //void update();
+
 
         // DULEZITE - SPRITE NEVI, VE KTERE GROUP JE A MUZE BYT POUZE V JEDNE GROUP
 
-	private:
+	//private:
 		//samotna textura
 		SDL_Texture* sTexture;
 
@@ -56,9 +58,11 @@ class Group
         // odebere Sprite ze skupiny
         void removeFromGroup(Sprite*sprite);
 
+        //void updateAll();
+
         void freeAll();
 
-        void renderAll(SDL_Renderer* renderer);
+        //void renderAll(SDL_Renderer* renderer);
         //vyprazdni Group, ale nevymaze sprity
         void removeAll();
 
@@ -86,6 +90,18 @@ class Projectile:public Sprite
         projectileState update(Sprite * plosinka);
 };
 
+
+class glyphProjectile:public Projectile
+{
+    public:
+        //initialize
+        glyphProjectile(char character, int velx, int vely, int posx, int posy);
+        //deallocate
+        ~glyphProjectile();
+
+        char glyph;
+
+};
 
 
 #endif // SPRITE_H_INCLUDED

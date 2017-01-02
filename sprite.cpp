@@ -24,7 +24,8 @@ Sprite::~Sprite()
 	free();
 }
 
-bool Sprite::loadTexture( SDL_Surface*surface , SDL_Renderer* renderer, int customWidth, int customHeight)
+/*
+bool Sprite::loadTexture( SDL_Surface*surface , SDL_Renderer*renderer, int customWidth, int customHeight)
 {
     // NALOADUJE TEXTURE Z EXISTUJICIHO SURFACE
     // volitelne argumenty, pokud ma vysledny Rect byt mensi nez nacteny Surface (dobre pro nacitani spritesheetu)
@@ -41,7 +42,7 @@ bool Sprite::loadTexture( SDL_Surface*surface , SDL_Renderer* renderer, int cust
 	{
 		//color key pro pruhledny obrrazek
 		SDL_SetColorKey( surface, SDL_TRUE, SDL_MapRGB( surface->format, 0, 0, 0 ) );
-
+        printf("attempting to create texture from surface...\n");
 		//Create texture from surface pixels
         newTexture = SDL_CreateTextureFromSurface( renderer, surface );
 		if( newTexture == NULL )
@@ -50,6 +51,7 @@ bool Sprite::loadTexture( SDL_Surface*surface , SDL_Renderer* renderer, int cust
 		}
 		else
 		{
+		    printf("texture created\n");
 		    if (customWidth > 0 && customHeight > 0)
             {
                 //zapis do Rectu vlastni sirku a vysku
@@ -69,6 +71,39 @@ bool Sprite::loadTexture( SDL_Surface*surface , SDL_Renderer* renderer, int cust
 
 	//Return success
 	sTexture = newTexture;
+	return sTexture != NULL;
+}
+*/
+
+bool Sprite::loadTexture( SDL_Texture*newTexture, int width, int height)
+{
+    // NALOADUJE TEXTURE Z EXISTUJICIHO SURFACE
+    // volitelne argumenty, pokud ma vysledny Rect byt mensi nez nacteny Surface (dobre pro nacitani spritesheetu)
+	//Get rid of preexisting texture
+	free();
+
+	sTexture = newTexture;
+	if( newTexture == NULL )
+	{
+		printf( "Unable to load texture! SDL_image Error: %s\n", IMG_GetError() );
+	}
+	else
+	{
+        printf("texture loaded\n");
+        if (width > 0 && height > 0)
+        {
+            //zapis do Rectu vlastni sirku a vysku
+            sRect.w = width;
+            sRect.h = height;
+        }
+        else
+        {
+            printf("ERROR: negative width \& height \n");
+        }
+
+	}
+
+    //Return success
 	return sTexture != NULL;
 }
 
@@ -135,33 +170,7 @@ Group::~Group()
     freeAll();
 }
 
-void Group::freeAll()
-{
-    //vymaz vsechny textury vsech spritu ve skupine a vymaz i pole (odzadu)
-    for (int i = numberOfMembers; i > 0; i--)
-    {
-        members[i]->free();
-        members[i] = NULL;
-        numberOfMembers = numberOfMembers -1;
-    }
-}
 
-void Group::renderAll(SDL_Renderer* renderer)
-{
-    //vyrenderuj vsechny sprity ve skupine
-    for (int i = numberOfMembers-1; i < 0; i--)
-    {
-        if (members[i] == NULL)
-        {
-            //muze se stat
-            continue;
-        }
-        else
-        {
-            members[i]->render(renderer);
-        }
-    }
-}
 
 void Group::add(Sprite*sprite)
 {
@@ -189,9 +198,44 @@ void Group::removeFromGroup(Sprite*sprite)
     }
     numberOfMembers--;
 }
+/*
+void Group::updateAll()
+{
+    for(int i = numberOfMembers; i > 0; i--)
+    {
+        members[i].update();
+    }
+}
+*/
+void Group::freeAll()
+{
+    //vymaz vsechny textury vsech spritu ve skupine a vymaz i pole (odzadu)
+    for (int i = numberOfMembers; i > 0; i--)
+    {
+        members[i]->free();
+        members[i] = NULL;
+        numberOfMembers = numberOfMembers -1;
+    }
+}
+/*
+void Group::renderAll(SDL_Renderer* renderer)
+{
+    //vyrenderuj vsechny sprity ve skupine
+    for (int i = numberOfMembers-1; i < 0; i--)
+    {
+        if (members[i] == NULL)
+        {
+            //muze se stat
+            continue;
+        }
+        else
+        {
+            members[i]->render(renderer);
+        }
+    }
+}
 
-
-
+*/
 Projectile::Projectile(int velx, int vely, int posx, int posy):Sprite()
 {
 	//Initialize
@@ -240,7 +284,7 @@ projectileState Projectile::update(Sprite * plosinka)
     {
         // proved kolizi s plosinkou
         velY = -velY;
-        sRect.y = sRect.y + velY;
+        sRect.y = plosinka->sRect.y-sRect.h + velY;
         return COLLIDED;
     }
 
@@ -253,4 +297,15 @@ projectileState Projectile::update(Sprite * plosinka)
     return FREE;
 }
 
+glyphProjectile::glyphProjectile(char character, int velx, int vely, int posx, int posy):Projectile(velx, vely, posx, posy)
+{
+    //initialize
+    glyph = character;
+}
+
+glyphProjectile::~glyphProjectile()
+{
+    glyph = NULL;
+    free();
+}
 
