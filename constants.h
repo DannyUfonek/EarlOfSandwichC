@@ -5,14 +5,14 @@
 */
 
 #include <SDL.h>
+//Screen dimension constants
+const int SCREEN_WIDTH = 980;
+const int SCREEN_HEIGHT = 980;
 
 //Performance constants
 const int MAX_FPS = 60;
 
-//ztruktury barev
-SDL_Color WHITE = {255,255,255,255};
-SDL_Color BLACK = {0,0,0,255};
-SDL_Color RED = {255,0,0,255};
+
 //Keyboard constants
 
 

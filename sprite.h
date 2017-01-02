@@ -5,7 +5,6 @@
 #include <SDL_image.h>
 #include <stdio.h>
 #include <string>
-#include "group.h"
 
 class Sprite
 {
@@ -65,4 +64,29 @@ class Group
 
 };
 
+//==============================HERNI TRIDY===============================
+
+enum projectileState{FREE,     // --leti v okne
+                     COLLIDED, // --srazi se s obdelnikem
+                     LOST      // --vyletela z hraciho
+};
+
+class Projectile:public Sprite
+{
+    public:
+        //Initializes variables
+        Projectile(int velx, int vely, int posx, int posy);
+
+        //Deallocates memory
+        ~Projectile();
+
+        int velX;
+        int velY;
+        // posune kulicku, animuje , zkontroluje kolizi etc.
+        projectileState update(Sprite * plosinka);
+};
+
+
+
 #endif // SPRITE_H_INCLUDED
+

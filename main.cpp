@@ -9,9 +9,11 @@
 #include "sprite.h"
 #include "constants.h"
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 980;
-const int SCREEN_HEIGHT = 980;
+
+//ztruktury barev
+SDL_Color WHITE = {255,255,255,255};
+SDL_Color BLACK = {0,0,0,255};
+SDL_Color RED = {255,0,0,255};
 
 //The window we'll be rendering to
 SDL_Window* okno = NULL;
@@ -22,10 +24,6 @@ SDL_Renderer* renderer = NULL;
 //Globally used fonts
 TTF_Font* titleFont = NULL;
 TTF_Font* arcadeFont = NULL;
-
-
-
-//=============================================================
 
 
 
@@ -42,7 +40,9 @@ void close();
 //Scene sprites
 SDL_Rect gSpriteClips[ 4 ];
 Sprite gSpriteSheetTexture;
-Sprite kulicka;
+
+Sprite plosinka;
+Projectile kulicka(10,10,100,100);
 // text
 Sprite nadpis;
 Sprite pressanykey;
@@ -206,7 +206,7 @@ void close()
 {
 	//Free loaded images
 	gSpriteSheetTexture.free();
-	kulicka.free();
+	plosinka.free();
 	nadpis.free();
 
 	// vymaz fonty
@@ -237,23 +237,24 @@ int main( int argc, char* args[] )
     obrazovka.y = 0;
     obrazovka.w = SCREEN_WIDTH;
     obrazovka.h = SCREEN_HEIGHT;
-    // vyrob plosinku
-	SDL_Rect obdelnik;
-	obdelnik.x=450;
-	obdelnik.y=650;
-	obdelnik.w=100;
-	obdelnik.h=20;
+    // vyrob plosinku a posun na spravne misto
+	Sprite plosinka;
+	SDL_Surface * s;
+	s = SDL_CreateRGBSurface(0, 100, 20, 32,0,0,0,0);
+    if (s == NULL) {
+        printf("SDL_CreateRGBSurface() failed: %s", SDL_GetError());
+    }
 
+	SDL_FillRect(s, NULL, SDL_MapRGB(s->format,0,0,0));
+    plosinka.loadTexture(s, renderer);
+	plosinka.sRect.x=450;
+	plosinka.sRect.y=650;
     int rychlost = 100;
 
-    int velX = 10;
-    int velY = 10;
-    kulicka.sRect.x = 100;
-    kulicka.sRect.y = 100;
+    // inicializuj kulicku
+    //Projectile kulicka(10,10,100,100);
 
 
-
-    SDL_Rect kolizniRect;
 	//Start up SDL and create window
 	if( !init() )
 	{
@@ -356,15 +357,15 @@ int main( int argc, char* args[] )
                         // ziskej stav klaves na klavesnici
                         const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
                         // pohyb plosinky doleva a doprava
-                        if( currentKeyStates[ SDL_SCANCODE_LEFT ] && obdelnik.x > 0)
+                        if( currentKeyStates[ SDL_SCANCODE_LEFT ] && plosinka.sRect.x > 0)
                         {
                             SDL_SetRenderDrawColor(renderer,0,255,0,255);
-                            obdelnik.x = obdelnik.x -rychlost;
+                            plosinka.sRect.x = plosinka.sRect.x -rychlost;
                         }
-                        if( currentKeyStates[ SDL_SCANCODE_RIGHT ] && obdelnik.x < SCREEN_WIDTH - obdelnik.w)
+                        if( currentKeyStates[ SDL_SCANCODE_RIGHT ] && plosinka.sRect.x < SCREEN_WIDTH - plosinka.sRect.w)
                         {
                             SDL_SetRenderDrawColor(renderer,255,100,200,255);
-                            obdelnik.x = obdelnik.x +rychlost;
+                            plosinka.sRect.x = plosinka.sRect.x +rychlost;
                         }
                     }
 				}
@@ -381,54 +382,11 @@ int main( int argc, char* args[] )
                 {
                     counter = 3;
                 }
-                // ======= POHYB KULICKY =========
-                if(0 < kulicka.sRect.x && kulicka.sRect.x < SCREEN_WIDTH -kulicka.sRect.w)
-                {
-                    kulicka.sRect.x = kulicka.sRect.x + velX;
-                }
-                else
-                {
-                    //odraz se od strany
-                    velX = -velX;
-                    kulicka.sRect.x = kulicka.sRect.x + velX;
-                }
-                if(0 < kulicka.sRect.y  && kulicka.sRect.y)
-                {
-                    kulicka.sRect.y = kulicka.sRect.y + velY;
-                }
-                else
-                {
-                    //odraz se od horni steny
-                    velY = -velY;
-                    kulicka.sRect.y = kulicka.sRect.y + velY;
-                }
-                if (kulicka.sRect.y + kulicka.sRect.h >= obdelnik.y && SDL_HasIntersection(&kulicka.sRect, &obdelnik) == SDL_TRUE)
-                {
-                    // proved kolizi s plosinkou
-                    velY = -velY;
-                    kulicka.sRect.y = kulicka.sRect.y + velY;
-                }
-                if (kulicka.sRect.y > SCREEN_HEIGHT)
-                {
 
-                }
-                /*
-                if(SDL_IntersectRect(&kulicka.sRect, &obdelnik, &kolizniRect) == SDL_TRUE)
-                {
-                    // proved kolizi s plosinkou
-                    if(kolizniRect.w > kolizniRect.h)
-                    {
-                        velY = -velY;
-                    }
-                    if(kolizniRect.w < kolizniRect.h)
-                    {
-                        velX = -velX;
-                    }
-                }
-                */
+                kulicka.update(&plosinka);
                 // vypln pozadi
                 SDL_RenderCopy(renderer, background, NULL, NULL);
-                SDL_RenderFillRect(renderer,&obdelnik);
+                plosinka.render(renderer);
                 kulicka.render(renderer, &gSpriteClips[ 2 ] );
 				//Update screen
 				SDL_RenderPresent( renderer );
