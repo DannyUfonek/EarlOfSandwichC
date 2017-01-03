@@ -138,28 +138,7 @@ void Sprite::render(SDL_Renderer* renderer , SDL_Rect* clip )
         SDL_RenderCopy( renderer, sTexture, clip, &sRect );
     }
 }
-/*
-void Sprite::add(Group*group)
-{
-    //pripoj Sprite na konec pole
-    group->members[group->numberOfMembers] = this;
-    groupIndex = group->numberOfMembers;
-    group->numberOfMembers++;
-}
 
-void Sprite::leave(Group*group)
-{
-    //opust Group
-    group->members[groupIndex] = NULL;
-    // soupni vsechny sprity v poli za timto spritem o jedno misto doleva (aby tam nevzniklo prazdne misto)
-    for (int i = groupIndex; i < group->numberOfMembers-1; i++)
-    {
-        members[i] = members[i+1];
-    }
-    groupIndex = -1;
-    group->numberOfMembers--;
-}
-*/
 
 // ===============GROUP=============
 

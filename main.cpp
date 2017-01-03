@@ -44,8 +44,8 @@ bool loadMedia();
 void close();
 
 Sprite plosinka;
-int rychlost = 50;
-// aktualni
+const int rychlost = 25;
+// dynamicky int
 int rychlostPlosiny = 0;
 
 //staticky text (title)
@@ -66,8 +66,8 @@ Sprite youWin;
 Sprite pressEnterToRestart;
 
 //================LEVELY A HERNI LOGIKA (V POZDEJSI VERZI BY LEVELY MELY BYT NACITANY Z EXTERNIHO SOUBORU)=================
-std::string level_one[9] = {"a", "o", "co", "tu", "jen", "jde", "chyt", "tohle", "vsechno"};
-int levelLength = 9;
+std::string level_one[14] = {"a", "o", "co", "tu", "jen", "jde", "chyt", "tyhle", "vsechny", "pismena", "a", "ani" , "jedno", "neztrat"};
+int levelLength = 14;
 // omezeni (pozdeji by to melo byt dynamicke)
 const int maxWordLength = 10;
 // samotne pole na pismenka jednoho slova
@@ -345,6 +345,7 @@ int main( int argc, char* args[] )
             bool start = false;
 		    bool quit = false;
 		    bool win = false;
+		    bool lose = false;
 		    //Event handler
 			SDL_Event e;
 
@@ -361,6 +362,9 @@ int main( int argc, char* args[] )
             plosinka.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, s), s->w, s->h);
             plosinka.sRect.x=450;
             plosinka.sRect.y=850;
+            int rychlost = 100;
+
+
 
             // inicializuj kulicku
             //Projectile kulicka(10,10,100,100);
@@ -398,7 +402,7 @@ int main( int argc, char* args[] )
 					    quit = true;
 					    start = true;
 					}
-                    if(e.type==SDL_KEYDOWN && e.key.repeat == 0)
+                    if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
                     {
                         if(e.key.keysym.sym==SDLK_ESCAPE)
                         {
@@ -466,7 +470,7 @@ int main( int argc, char* args[] )
 
                         for (int j = 0; j < currentWordLength; j++)
                         {
-                            printf("freeing\n");
+                            printf("freing\n");
                             //printf("freeing previous letter %s\n", letters[j]->glyph);
                             //letters[j]->free();
                             // predchozi dva radky nefunguji, proto se s tim neotravuj
@@ -494,11 +498,7 @@ int main( int argc, char* args[] )
                             // vyrenderuj pismeno
                             char*text;
                             strncpy ( text, currentWord, 1 );
-                            letterSurface = renderSurfaceFromText(insulaFont, text, BLACK);
-                            if(letterSurface = NULL)
-                            {
-                                printf("SDL_TTF Erorr: ", TTF_GetError());
-                            }
+                            letterSurface = renderSurfaceFromText(insulaFont, text, {0, 0, 0, 255});
                             //nacti ho do glyphprojectile
                             newLetter->loadTexture(SDL_CreateTextureFromSurface(gameRenderer, letterSurface), letterSurface->w, letterSurface->h);
                             //uloz do letters
@@ -522,7 +522,7 @@ int main( int argc, char* args[] )
                     // vrat se na zacatek slova
                     currentWord = &level_one[indexOfCurrentWord][0];
                     SDL_Surface*wordSurface;
-                    wordSurface = renderSurfaceFromText(insulaFont, currentWord, BLACK);
+                    wordSurface = renderSurfaceFromText(insulaFont, currentWord, {0, 0, 0, 255});
                     wholeWord.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, wordSurface), wordSurface->w, wordSurface->h);
                     // posun ho doprostred nahoru
                     wholeWord.sRect.x = SCREEN_WIDTH/2 - wholeWord.sRect.w/2;
@@ -538,14 +538,13 @@ int main( int argc, char* args[] )
                 {
                     //pokud nemuzu sehnat dalsi slovo, znamena to vyhru
                     win = true;
-                    //indexOfCurrentWord = 0;
+
+                    indexOfCurrentWord = 0;
                     //wordComplete = false;
                 }
 
-			    while (!quit && !wordComplete && lives != 0 && !win)
+			    while (!quit && !wordComplete && !lose && !win)
                 {
-                    // hraj soucasne slovo
-
                     //====================UDALOSTI=================
                     while( SDL_PollEvent( &e ) != 0 )
                     {
@@ -554,21 +553,19 @@ int main( int argc, char* args[] )
                         {
                             quit = true;
                         }
-                        if(e.type==SDL_KEYDOWN && e.key.repeat == 0)
+                        if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
                         {
                             if(e.key.keysym.sym==SDLK_ESCAPE)
                             {
                                 // ukonci hru
                                 quit = true;
                             }
-                            // ziskej stav klaves na klavesnici
-                            const Uint8* currentKeyStates = SDL_GetKeyboardState( NULL );
                             // pohyb plosinky doleva a doprava
-                            if(e.key.keysym.sym==SDLK_LEFT && plosinka.sRect.x > 0)
+                            if( e.key.keysym.sym==SDLK_LEFT)
                             {
-                                rychlostPlosiny = +rychlost;
+                                rychlostPlosiny = -rychlost;
                             }
-                            if(e.key.keysym.sym==SDLK_RIGHT && plosinka.sRect.x < SCREEN_WIDTH - plosinka.sRect.w)
+                            if( e.key.keysym.sym==SDLK_RIGHT)
                             {
                                 rychlostPlosiny = +rychlost;
                             }
@@ -598,6 +595,9 @@ int main( int argc, char* args[] )
                                     scoreStream << score;
                                     SDL_Surface*scoreSurface = renderSurfaceFromText(insulaFontSmall, scoreStream.str().c_str(), RED);
                                     scoreNumber.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, scoreSurface), scoreSurface->w, scoreSurface->h);
+                                    // posun na spravne misto, jinak to problikava
+                                    scoreNumber.sRect.x = scoreText.sRect.x + scoreText.sRect.w + 20;
+                                    scoreNumber.sRect.y = 20;
 
                                     // pokracuj dalsim slovem
                                     wordComplete = true;
@@ -606,38 +606,43 @@ int main( int argc, char* args[] )
                                 }
                             }
                         }
-                        if(e.type==SDL_KEYUP && e.key.repeat == 0)
+                        else if( e.type == SDL_KEYUP && e.key.repeat == 0 )
                         {
                             // zastav pohyb plosinky doleva a doprava
-                            if(e.key.keysym.sym==SDLK_LEFT && plosinka.sRect.x > 0)
+                            if( e.key.keysym.sym==SDLK_LEFT)
                             {
                                 rychlostPlosiny = 0;
                             }
-                            if(e.key.keysym.sym==SDLK_RIGHT && plosinka.sRect.x < SCREEN_WIDTH - plosinka.sRect.w)
+                            if( e.key.keysym.sym==SDLK_RIGHT)
                             {
                                 rychlostPlosiny = 0;
                             }
                         }
+
                     }
 
                     //====================HRA=================
-                    //pohni plosinkou
-
-                    if (plosinka.sRect.x < 0 && plosinka.sRect.x > SCREEN_WIDTH - plosinka.sRect.w)
+                    // zkontroluj zivoty
+                    if (lives <= 0)
                     {
-                        plosinka.sRect.x = plosinka.sRect.x + rychlostPlosiny;
+                        lose = true;
                     }
-                    else
+                    //pohni plosinkou a udrz ji uvnitr obrazovky
+                    if (plosinka.sRect.x < 0 || plosinka.sRect.x + plosinka.sRect.w > SCREEN_WIDTH)
                     {
-                        // udrz ji uvnitr hry
                         if (plosinka.sRect.x < 0)
                         {
                             plosinka.sRect.x = 0;
                         }
-                        if(plosinka.sRect.x > SCREEN_WIDTH - plosinka.sRect.w)
+                        if (plosinka.sRect.x + plosinka.sRect.w > SCREEN_WIDTH)
                         {
                             plosinka.sRect.x = SCREEN_WIDTH - plosinka.sRect.w;
                         }
+
+                    }
+                    else
+                    {
+                        plosinka.sRect.x = plosinka.sRect.x + rychlostPlosiny;
                     }
 
 
@@ -649,15 +654,21 @@ int main( int argc, char* args[] )
                         if (state == LOST)
                         {
                             lives = lives -1;
-                            printf("GLYPH LOST! REMAINING LIFE: %i", lives);
-                            letter->sRect.y = 40;
-                            letter->hasCollided = false;
-
+                            printf("GLYPH LOST! REMAINING LIFE: %i \n", lives);
                             //prekresli pocitadlo
                             livesStream.str( "" );
                             livesStream << lives;
                             SDL_Surface*livesSurface = renderSurfaceFromText(insulaFontSmall, livesStream.str().c_str(), RED);
                             livesNumber.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, livesSurface), livesSurface->w, livesSurface->h);
+                            // z nejakeho duvodu se pocitadlo zivotu presouva po prepsani textu, timto se to spravuje
+                            livesNumber.sRect.x = livesText.sRect.x + livesText.sRect.w + 20;
+                            livesNumber.sRect.y = 20;
+
+
+                            letter->sRect.y = 40;
+                            letter->hasCollided = false;
+
+
                         }
                         if (state == COLLIDING)
                         {
@@ -671,7 +682,6 @@ int main( int argc, char* args[] )
                             counter = 1;
                         }
                     }
-
                     counter++;
                     // ===============VYKRESLENI==========
 
@@ -695,7 +705,7 @@ int main( int argc, char* args[] )
                 }
 
                 //posun skore na spravne misto
-                if (win == true || lives == 0)
+                if (win == true || lose == true)
                 {
                     youLose.sRect.x = SCREEN_WIDTH/2 - youLose.sRect.w/2;
                     youLose.sRect.y = 100;
@@ -709,8 +719,8 @@ int main( int argc, char* args[] )
                     pressEnterToRestart.sRect.y = 800;
                 }
 
-
-                while(win)
+                counter = 0;
+                while(win && !quit)
                 {
                     // LOOP PRO VYHRU
                     while( SDL_PollEvent( &e ) != 0 )
@@ -720,7 +730,7 @@ int main( int argc, char* args[] )
                         {
                             quit = true;
                         }
-                        if(e.type==SDL_KEYDOWN && e.key.repeat == 0)
+                        if(e.type==SDL_KEYDOWN)
                         {
                             if(e.key.keysym.sym==SDLK_ESCAPE)
                             {
@@ -734,8 +744,6 @@ int main( int argc, char* args[] )
                                 score = 0;
                                 start = true;
                                 win = false;
-                                //currentWordLength = 0;
-                                //indexOfCurrentWord = 0;
                             }
                         }
 
@@ -765,7 +773,7 @@ int main( int argc, char* args[] )
                     SDL_RenderPresent( gameRenderer );
                 }
 
-                while(lives <= 0)
+                while(lose && !quit)
                 {
                     // LOOP PRO PROHRU
                     while( SDL_PollEvent( &e ) != 0 )
@@ -775,7 +783,7 @@ int main( int argc, char* args[] )
                         {
                             quit = true;
                         }
-                        if(e.type==SDL_KEYDOWN && e.key.repeat == 0)
+                        if(e.type==SDL_KEYDOWN)
                         {
                             if(e.key.keysym.sym==SDLK_ESCAPE)
                             {
@@ -789,8 +797,6 @@ int main( int argc, char* args[] )
                                 score = 0;
                                 start = true;
                                 win = false;
-                                //currentWordLength = 0;
-                                //indexOfCurrentWord = 0;
                             }
                         }
 
