@@ -32,7 +32,7 @@ class Sprite
 
         // DULEZITE - SPRITE NEVI, VE KTERE GROUP JE A MUZE BYT POUZE V JEDNE GROUP
 
-	//private:
+        //private:
 		//samotna textura
 		SDL_Texture* sTexture;
 
@@ -41,7 +41,7 @@ class Sprite
 class Group
 {
     public:
-        //class pro rychlou praci s vice Sprity
+        //class pro rychlou praci s vice Sprity (zatim nepouzite)
 
         //Initializes variables
         Group();
@@ -71,7 +71,7 @@ class Group
 //==============================HERNI TRIDY===============================
 
 enum projectileState{FREE,     // --leti v okne
-                     COLLIDED, // --srazi se s obdelnikem
+                     COLLIDING, // --v prubehu srazky s obdelnikem
                      LOST      // --vyletela z hraciho
 };
 
@@ -86,8 +86,11 @@ class Projectile:public Sprite
 
         int velX;
         int velY;
+
+        bool hasCollided;
         // posune kulicku, animuje , zkontroluje kolizi etc.
         projectileState update(Sprite * plosinka);
+
 };
 
 
@@ -100,6 +103,7 @@ class glyphProjectile:public Projectile
         ~glyphProjectile();
 
         char glyph;
+
 
 };
 

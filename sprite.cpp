@@ -285,7 +285,8 @@ projectileState Projectile::update(Sprite * plosinka)
         // proved kolizi s plosinkou
         velY = -velY;
         sRect.y = plosinka->sRect.y-sRect.h + velY;
-        return COLLIDED;
+        hasCollided = true;
+        return COLLIDING;
     }
 
     if (sRect.y > SCREEN_HEIGHT)
@@ -301,11 +302,13 @@ glyphProjectile::glyphProjectile(char character, int velx, int vely, int posx, i
 {
     //initialize
     glyph = character;
+    hasCollided = false;
 }
 
 glyphProjectile::~glyphProjectile()
 {
     glyph = NULL;
+    hasCollided = false;
     free();
 }
 

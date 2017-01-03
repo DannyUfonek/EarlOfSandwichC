@@ -327,13 +327,16 @@
 	"begin_code.h"
 	"close_code.h"
 
-1483385080 source:i:\earlofsandwichc\main.cpp
+1483467880 source:i:\earlofsandwichc\main.cpp
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
 	<stdio.h>
 	<string>
+	<cstring>
 	<cmath>
+	<cstdlib>
+	<ctime>
 	"sprite.h"
 	"constants.h"
 
@@ -700,7 +703,7 @@
 	"begin_code.h"
 	"close_code.h"
 
-1483382376 i:\earlofsandwichc\sprite.h
+1483469551 i:\earlofsandwichc\sprite.h
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
@@ -710,7 +713,7 @@
 1483357538 i:\earlofsandwichc\constants.h
 	<SDL.h>
 
-1483383003 source:i:\earlofsandwichc\sprite.cpp
+1483466886 source:i:\earlofsandwichc\sprite.cpp
 	<SDL.h>
 	<SDL_ttf.h>
 	<SDL_image.h>
