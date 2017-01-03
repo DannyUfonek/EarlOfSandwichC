@@ -15,6 +15,8 @@ class Sprite
 		//Deallocates memory
 		~Sprite();
 
+		// pro sprity, ktere nemaji hned jit na obrazovku (hodi se hlavne pro projektily)
+        bool hidden;
 		//Loads a previously created texture into sprite's texture
 		bool loadTexture(SDL_Texture*newTexture, int width = -1, int height = -1);
 
@@ -49,6 +51,7 @@ class Group
         //Deallocates memory
         ~Group();
 
+
         // samotne ukazatele na sprity
         Sprite * members[];
 
@@ -72,7 +75,8 @@ class Group
 
 enum projectileState{FREE,     // --leti v okne
                      COLLIDING, // --v prubehu srazky s obdelnikem
-                     LOST      // --vyletela z hraciho
+                     LOST,      // --vyletela z hraciho
+                     HIDDEN   // -- zatim nic nedela
 };
 
 class Projectile:public Sprite
@@ -88,6 +92,7 @@ class Projectile:public Sprite
         int velY;
 
         bool hasCollided;
+
         // posune kulicku, animuje , zkontroluje kolizi etc.
         projectileState update(Sprite * plosinka);
 
@@ -103,7 +108,6 @@ class glyphProjectile:public Projectile
         ~glyphProjectile();
 
         char glyph;
-
 
 };
 

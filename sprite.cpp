@@ -16,6 +16,7 @@ Sprite::Sprite()
 	sRect.y = 0;
     sRect.w = 0;
 	sRect.h = 0;
+	hidden = false;
 }
 
 Sprite::~Sprite()
@@ -132,7 +133,10 @@ void Sprite::render(SDL_Renderer* renderer , SDL_Rect* clip )
 	}
 
 	//Render sprite to screen
-	SDL_RenderCopy( renderer, sTexture, clip, &sRect );
+	if(!hidden)
+    {
+        SDL_RenderCopy( renderer, sTexture, clip, &sRect );
+    }
 }
 /*
 void Sprite::add(Group*group)
@@ -254,48 +258,63 @@ Projectile::~Projectile()
 
 projectileState Projectile::update(Sprite * plosinka)
 {
-    // ======= POHYB KULICKY =========
+    // ======= POHYB =========
+    if (plosinka !=NULL)
+    {
+        // pokud vztahujeme vuci plosince
 
-    //POHYB V X
-    if(0 < sRect.x && sRect.x < SCREEN_WIDTH -sRect.w)
-    {
-        sRect.x = sRect.x + velX;
-    }
-    else
-    {
-        //odraz se od strany
-        velX = -velX;
-        sRect.x = sRect.x + velX;
+        // POKUD HIDDEN, NEDELEJ NIC
+        if (!hidden)
+        {
+            //POHYB V X
+            if(0 < sRect.x && sRect.x < SCREEN_WIDTH -sRect.w)
+            {
+                sRect.x = sRect.x + velX;
+            }
+            else
+            {
+                //odraz se od strany
+                velX = -velX;
+                sRect.x = sRect.x + velX;
+            }
+
+            // POHYB V Y
+            if(0 < sRect.y)
+            {
+                sRect.y = sRect.y + velY;
+            }
+            else
+            {
+                //odraz se od horni steny
+                velY = -velY;
+                sRect.y = sRect.y + velY;
+            }
+
+            if (sRect.y + sRect.h >= plosinka->sRect.y && SDL_HasIntersection(&sRect, &plosinka->sRect) == SDL_TRUE)
+            {
+                // proved kolizi s plosinkou
+                velY = -velY;
+                sRect.y = plosinka->sRect.y-sRect.h + velY;
+                hasCollided = true;
+                return COLLIDING;
+            }
+
+            if (sRect.y > SCREEN_HEIGHT)
+            {
+                // uber zivot pokud vyjede z planu (vyhodnocene v mainu)
+                return LOST;
+            }
+            // pokud nic, vrat "FREE"
+            return FREE;
+        }
+        else
+        {
+            return HIDDEN;
+        }
+
     }
 
-    // POHYB V Y
-    if(0 < sRect.y)
-    {
-        sRect.y = sRect.y + velY;
-    }
-    else
-    {
-        //odraz se od horni steny
-        velY = -velY;
-        sRect.y = sRect.y + velY;
-    }
 
-    if (sRect.y + sRect.h >= plosinka->sRect.y && SDL_HasIntersection(&sRect, &plosinka->sRect) == SDL_TRUE)
-    {
-        // proved kolizi s plosinkou
-        velY = -velY;
-        sRect.y = plosinka->sRect.y-sRect.h + velY;
-        hasCollided = true;
-        return COLLIDING;
-    }
-
-    if (sRect.y > SCREEN_HEIGHT)
-    {
-        // uber zivot pokud vyjede z planu (vyhodnocene v mainu)
-        return LOST;
-    }
-    // pokud nic, vrat "FREE"
-    return FREE;
 }
 
 glyphProjectile::glyphProjectile(char character, int velx, int vely, int posx, int posy):Projectile(velx, vely, posx, posy)
