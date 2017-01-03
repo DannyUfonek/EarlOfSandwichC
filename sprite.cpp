@@ -25,57 +25,6 @@ Sprite::~Sprite()
 	free();
 }
 
-/*
-bool Sprite::loadTexture( SDL_Surface*surface , SDL_Renderer*renderer, int customWidth, int customHeight)
-{
-    // NALOADUJE TEXTURE Z EXISTUJICIHO SURFACE
-    // volitelne argumenty, pokud ma vysledny Rect byt mensi nez nacteny Surface (dobre pro nacitani spritesheetu)
-	//Get rid of preexisting texture
-	free();
-
-	SDL_Texture* newTexture = NULL;
-
-	if( surface == NULL )
-	{
-		printf( "Unable to load image! SDL_image Error: %s\n", IMG_GetError() );
-	}
-	else
-	{
-		//color key pro pruhledny obrrazek
-		SDL_SetColorKey( surface, SDL_TRUE, SDL_MapRGB( surface->format, 0, 0, 0 ) );
-        printf("attempting to create texture from surface...\n");
-		//Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface( renderer, surface );
-		if( newTexture == NULL )
-		{
-			printf( "Unable to create texture from image! SDL Error: %s\n", SDL_GetError() );
-		}
-		else
-		{
-		    printf("texture created\n");
-		    if (customWidth > 0 && customHeight > 0)
-            {
-                //zapis do Rectu vlastni sirku a vysku
-                sRect.w = customWidth;
-                sRect.h = customHeight;
-            }
-            else
-            {
-                //zapis do Rectu velikost obrazku
-                sRect.w = surface->w;
-                sRect.h = surface->h;
-            }
-
-		}
-
-	}
-
-	//Return success
-	sTexture = newTexture;
-	return sTexture != NULL;
-}
-*/
-
 bool Sprite::loadTexture( SDL_Texture*newTexture, int width, int height)
 {
     // NALOADUJE TEXTURE Z EXISTUJICIHO SURFACE
@@ -139,7 +88,7 @@ void Sprite::render(SDL_Renderer* renderer , SDL_Rect* clip )
     }
 }
 
-
+/*
 // ===============GROUP=============
 
 Group::Group()
@@ -181,7 +130,7 @@ void Group::removeFromGroup(Sprite*sprite)
     }
     numberOfMembers--;
 }
-/*
+
 void Group::updateAll()
 {
     for(int i = numberOfMembers; i > 0; i--)
@@ -189,7 +138,7 @@ void Group::updateAll()
         members[i].update();
     }
 }
-*/
+
 void Group::freeAll()
 {
     //vymaz vsechny textury vsech spritu ve skupine a vymaz i pole (odzadu)
@@ -200,7 +149,7 @@ void Group::freeAll()
         numberOfMembers = numberOfMembers -1;
     }
 }
-/*
+
 void Group::renderAll(SDL_Renderer* renderer)
 {
     //vyrenderuj vsechny sprity ve skupine

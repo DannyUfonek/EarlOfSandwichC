@@ -40,6 +40,7 @@ class Sprite
 
 };
 
+/*
 class Group
 {
     public:
@@ -70,6 +71,7 @@ class Group
         void removeAll();
 
 };
+*/
 
 //==============================HERNI TRIDY===============================
 

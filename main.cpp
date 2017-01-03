@@ -26,9 +26,6 @@ SDL_Window* okno = NULL;
 SDL_Renderer* gameRenderer = NULL;
 
 //nejake fonty
-TTF_Font* titleFont = NULL;
-TTF_Font* arcadeFont = NULL;
-TTF_Font* monoFont = NULL;
 TTF_Font* insulaFont = NULL;
 TTF_Font* insulaFontSmall = NULL;
 
@@ -42,10 +39,23 @@ bool loadMedia();
 
 //Frees media and shuts down SDL
 void close();
+//================LEVELY A HERNI LOGIKA (V POZDEJSI VERZI BY LEVELY MELY BYT NACITANY Z EXTERNIHO SOUBORU)=================
+std::string level_one[14] = {"a", "o", "co", "tu", "jen", "jde", "chyt", "tyhle", "vsechny", "pismena", "a", "ani" , "jedno", "neztrat"};
+int levelLength = 14;
+// omezeni (pozdeji by to melo byt dynamicke)
+const int maxWordLength = 10;
+// samotne pole na pismenka jednoho slova
+glyphProjectile*letters[maxWordLength];
+const int rychlostPismen = 7;
 
+int currentWordLength = 0;
+int indexOfCurrentWord = 0;
+
+// =========================== VECI NA OBRAZOVCE====================
+// HRAC
 Sprite plosinka;
 const int rychlost = 25;
-// dynamicky int
+// dynamicky int kam se uklada soucasna rychlost
 int rychlostPlosiny = 0;
 
 //staticky text (title)
@@ -56,7 +66,7 @@ Sprite navod3;
 Sprite navod4;
 Sprite pressanykey;
 
-//staticky text (hra)
+//staticky text (hra+prohra/vyhra)
 Sprite scoreText;
 Sprite livesText;
 
@@ -65,19 +75,9 @@ Sprite youLose;
 Sprite youWin;
 Sprite pressEnterToRestart;
 
-//================LEVELY A HERNI LOGIKA (V POZDEJSI VERZI BY LEVELY MELY BYT NACITANY Z EXTERNIHO SOUBORU)=================
-std::string level_one[14] = {"a", "o", "co", "tu", "jen", "jde", "chyt", "tyhle", "vsechny", "pismena", "a", "ani" , "jedno", "neztrat"};
-int levelLength = 14;
-// omezeni (pozdeji by to melo byt dynamicke)
-const int maxWordLength = 10;
-// samotne pole na pismenka jednoho slova
-glyphProjectile*letters[maxWordLength];
-
-int currentWordLength = 0;
-int indexOfCurrentWord = 0;
-//std::string currentWord;
-//bool pro skok na dalsi slovo
+//bool pro skok na dalsi slovo v momente kdy jej hrac dokonci
 bool wordComplete = false;
+
 // slovo na horejsku obrazovky
 Sprite wholeWord;
 
@@ -87,10 +87,10 @@ int score = 0;
 //dynamicky text sprite
 Sprite scoreNumber;
 Sprite livesNumber;
-// textura, ktera se bude predelavat
+// textura, ktera se bude prepisovat soucasnou hodnotou
 SDL_Texture*livesTexture;
 SDL_Texture*scoreTexture;
-// stringstream kam se bude prevadet skore
+// stringstreamy pomoci kterych se bude prevadet skore
 std::ostringstream scoreStream;
 std::ostringstream livesStream;
 
@@ -201,26 +201,7 @@ bool loadMedia()
 	//Loading success flag
 	bool success = true;
 
-    // nacti fonty
-	titleFont = TTF_OpenFont( "Brushstrike trial.ttf", 90 );
-	if( titleFont == NULL )
-	{
-		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
-		success = false;
-	}
-	arcadeFont = TTF_OpenFont( "ka1.ttf", 40 );
-	if( arcadeFont == NULL )
-	{
-		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
-		success = false;
-	}
-	monoFont = TTF_OpenFont("courbd.ttf", 80);
-    if( monoFont == NULL )
-	{
-		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
-		success = false;
-	}
-	insulaFont = TTF_OpenFont("INSULA_.ttf", 80);
+    insulaFont = TTF_OpenFont("INSULA_.ttf", 80);
     if( insulaFont == NULL )
 	{
 		printf( "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError() );
@@ -286,19 +267,32 @@ bool loadMedia()
 
 void close()
 {
-	//Free loaded images
-	//gSpriteSheetTexture.free();
+    // vymaz sprity
 	plosinka.free();
 	nadpis.free();
+    nadpis.free();
+    navod1.free();
+    navod2.free();
+    navod3.free();
+    navod4.free();
+    pressanykey.free();
 
-	//kulicka.free();
-	// vymaz fonty
-	TTF_CloseFont( titleFont );
-	titleFont = NULL;
-	TTF_CloseFont( arcadeFont );
-	arcadeFont = NULL;
-    TTF_CloseFont( monoFont );
-	monoFont = NULL;
+    scoreText.free();
+    livesText.free();
+
+    youLose.free();
+    youWin.free();
+    pressEnterToRestart.free();
+
+    wholeWord.free();
+
+    scoreNumber.free();
+    livesNumber.free();
+
+    //vymaz textury
+    SDL_DestroyTexture(livesTexture);
+    SDL_DestroyTexture(scoreTexture);
+    // vymaz fonty
 	TTF_CloseFont( insulaFont );
 	insulaFont = NULL;
 	TTF_CloseFont( insulaFontSmall );
@@ -320,7 +314,7 @@ int counter = 0;
 
 int main( int argc, char* args[] )
 {
-    /* initialize random seed: */
+    // nacti random seed (pro generovani levelu)
     srand(time(NULL));
     // inicializuj pole pro pismena
     letters[0] = NULL;
@@ -494,7 +488,7 @@ int main( int argc, char* args[] )
                             printf("generating surface for %s", currentWord);
                             SDL_Surface*letterSurface;
                             // vyrob pismeno nekde nahore (-100 tam je aby se pismeno nezaseklo na pravem okraji v perpetualni kolizi)
-                            glyphProjectile*newLetter = new glyphProjectile(*currentWord, 7,7, rand()%(SCREEN_WIDTH-100), 100);
+                            glyphProjectile*newLetter = new glyphProjectile(*currentWord, rychlostPismen, rychlostPismen, rand()%(SCREEN_WIDTH-100), 40);
                             // vyrenderuj pismeno
                             char*text;
                             strncpy ( text, currentWord, 1 );
@@ -742,8 +736,28 @@ int main( int argc, char* args[] )
                                 // restartuje hru
                                 lives = 3;
                                 score = 0;
+                                //prekresli pocitadla
+                                livesStream.str( "" );
+                                livesStream << lives;
+                                SDL_Surface*livesSurface = renderSurfaceFromText(insulaFontSmall, livesStream.str().c_str(), RED);
+                                livesNumber.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, livesSurface), livesSurface->w, livesSurface->h);
+                                // z nejakeho duvodu se pocitadlo zivotu presouva po prepsani textu, timto se to spravuje
+                                livesNumber.sRect.x = livesText.sRect.x + livesText.sRect.w + 20;
+                                livesNumber.sRect.y = 20;
+
+                                scoreStream.str( "" );
+                                scoreStream << score;
+                                SDL_Surface*scoreSurface = renderSurfaceFromText(insulaFontSmall, scoreStream.str().c_str(), RED);
+                                scoreNumber.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, scoreSurface), scoreSurface->w, scoreSurface->h);
+                                // posun na spravne misto, jinak to problikava
+                                scoreNumber.sRect.x = scoreText.sRect.x + scoreText.sRect.w + 20;
+                                scoreNumber.sRect.y = 20;
+
                                 start = true;
                                 win = false;
+                                lose = false;
+                                currentWordLength = 0;
+                                indexOfCurrentWord = 0;
                             }
                         }
 
@@ -793,10 +807,32 @@ int main( int argc, char* args[] )
                             if(e.key.keysym.sym ==SDLK_RETURN)
                             {
                                 // restartuje hru
+
                                 lives = 3;
                                 score = 0;
+                                //prekresli pocitadla
+                                livesStream.str( "" );
+                                livesStream << lives;
+                                SDL_Surface*livesSurface = renderSurfaceFromText(insulaFontSmall, livesStream.str().c_str(), RED);
+                                livesNumber.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, livesSurface), livesSurface->w, livesSurface->h);
+                                // z nejakeho duvodu se pocitadlo zivotu presouva po prepsani textu, timto se to spravuje
+                                livesNumber.sRect.x = livesText.sRect.x + livesText.sRect.w + 20;
+                                livesNumber.sRect.y = 20;
+
+                                scoreStream.str( "" );
+                                scoreStream << score;
+                                SDL_Surface*scoreSurface = renderSurfaceFromText(insulaFontSmall, scoreStream.str().c_str(), RED);
+                                scoreNumber.loadTexture(SDL_CreateTextureFromSurface(gameRenderer, scoreSurface), scoreSurface->w, scoreSurface->h);
+                                // posun na spravne misto, jinak to problikava
+                                scoreNumber.sRect.x = scoreText.sRect.x + scoreText.sRect.w + 20;
+                                scoreNumber.sRect.y = 20;
+
+
                                 start = true;
                                 win = false;
+                                lose = false;
+                                currentWordLength = 0;
+                                indexOfCurrentWord = 0;
                             }
                         }
 
